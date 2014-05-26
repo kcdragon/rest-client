@@ -280,17 +280,36 @@ describe RestClient::Request do
     end
   end
 
-  describe "proxy" do
-    it "creates a proxy class if a proxy url is given" do
+  describe "#create_net_http" do
+    before { Net::HTTP.unstub(:new) }
+
+    it "creates a proxy net http object if a proxy url is given" do
       RestClient.stub(:proxy).and_return("http://example.com/")
-      @request.net_http_class.proxy_class?.should be_true
+      uri = URI.parse('http://foo.com/')
+
+      net_http = @request.create_net_http(uri)
+      net_http.should be_proxy
+      net_http.address.should == 'foo.com'
+      net_http.proxy_address.should == 'example.com'
     end
 
-    it "creates a non-proxy class if a proxy url is not given" do
-      @request.net_http_class.proxy_class?.should be_false
+    it "creates a non-proxy net http object if a proxy url is not given" do
+      uri = URI.parse('http://foo.com/')
+
+      net_http = @request.create_net_http(uri)
+      net_http.address.should == 'foo.com'
+      net_http.should be_proxy_from_env
+    end
+
+    it "creates a non-proxy net http object if nil_proxy? is set" do
+      RestClient.stub(nil_proxy?: true)
+      uri = URI.parse('http://foo.com/')
+
+      net_http = @request.create_net_http(uri)
+      net_http.address.should == 'foo.com'
+      net_http.should_not be_proxy_from_env
     end
   end
-
 
   describe "logging" do
     it "logs a get request" do

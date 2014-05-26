@@ -96,6 +96,10 @@ module RestClient
 
   class << self
     attr_accessor :proxy
+    attr_accessor :nil_proxy
+    def nil_proxy?
+      @nil_proxy
+    end
   end
 
   # Setup the log for RestClient calls.
